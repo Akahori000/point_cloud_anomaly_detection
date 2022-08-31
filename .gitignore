@@ -7,3 +7,7 @@ wandb
 libs/emd/build
 libs/emd/dist
 libs/emd/emd.egg-info
+
+data/
+git_init.sh
+saved_model/
