@@ -1,8 +1,8 @@
-save_dir: /saved_model
+save_dir: /workspace/saved_model
 normal_class: ["lamp","chair","table","car","sofa","rifle"]
 abnormal_class: ["airplane"]
 
-root_path: /workspace/data
+root_path: /workspace/data #workspaceいる?
 
 model: SkipVariationalFoldingNet
 weight: [1.0, 1.0, 1.0, 1.0]

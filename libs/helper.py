@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from .emd.emd_module import emdModule
 from .loss import ChamferLoss, mse_loss
 from .meter import AverageMeter
-from .vis_histgram import vis_histgram
+from .vis_histogram import vis_histgram
 from .visualize import vis_points_3d
 
 matplotlib.use("Agg")
