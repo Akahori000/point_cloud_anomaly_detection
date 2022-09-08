@@ -67,7 +67,7 @@ class ShapeNetDataset(data.Dataset):
         sample = {
             "data": point,
             "label": label,
-            "name": path[31:39],
+            "name": path[26:26+28], # 名前の一部をとる(桁がばらばらなので…)
             "path": path,
         }
 
@@ -101,6 +101,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         normal_data_paths = []
         for n_class in normal_class:
             normal_data_paths.append(os.path.join(root_path, split, f"{n_class}.h5"))
+        print(normal_data_paths)
         normal_data, normal_name = self.load_h5py(normal_data_paths)
 
         normal_data = np.concatenate(normal_data, axis=0)
@@ -160,6 +161,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         all_data = []
         all_label = []
         for h5_name in path:
+            # 読み込み
             f = h5py.File(h5_name, "r+")
             data = f["data"][:].astype("float32")
             label = f["label"][:]
@@ -330,6 +332,7 @@ class Dataseth5py(data.Dataset):
         all_data = []
         all_label = []
         for h5_name in path:
+            # 読み込み
             f = h5py.File(h5_name, "r+")
             data = f["data"][:].astype("float32")
             label = f["label"][:].astype("int64")
@@ -346,6 +349,7 @@ class Dataseth5py(data.Dataset):
             all_data += data
         return all_data
 
+    # これはloadした後につかうものぽい なぜならself.dataがload_h5pyによって得られるから　ただ誰もつかってない今は　たぶん回転とかさせるときに使う
     def __getitem__(self, item):
         point_set = self.data[item][: self.num_points]
         label = self.label[item]
@@ -371,3 +375,43 @@ class Dataseth5py(data.Dataset):
 
     def __len__(self):
         return self.data.shape[0]
+
+
+########################################
+'''
+for i in range(3):
+    if i == 0:
+        csvpath = 'data/train.csv'
+        savepath = 'data/train/'
+    elif i == 1:
+        csvpath = 'data/test.csv'
+        savepath = 'data/test/'
+    else:
+        csvpath = 'data/val.csv'
+        savepath = 'data/val/'
+
+    print(os.getcwd())
+    test = ShapeNetDataset(
+        csv_file=csvpath,
+        sampling="fps",
+        n_point=2000
+    )
+
+    dat = pd.read_csv(csvpath)
+    print(dat, dat.info())
+
+    for j in range(len(dat)):
+        dic = test.__getitem__(j)
+        pcds = dic['data']
+        lb = dic['label']
+        nm = dic['name']
+        #print(dic)
+
+        #print(type(pcds))
+
+        with h5py.File(savepath + lb + '_' + nm + '.h5', 'a') as f:
+            f.create_dataset('data', data=pcds)
+            f.create_dataset('label', data=lb)
+
+            f.close()
+'''
