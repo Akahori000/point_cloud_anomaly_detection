@@ -13,8 +13,8 @@ import pandas as pd
 import torch
 from torch.utils import data
 
-from .load_obj import loadOBJ
-from .sampling import fartherst_point_sampling
+from load_obj import loadOBJ
+from sampling import fartherst_point_sampling
 
 
 class ShapeNetDataset(data.Dataset):
@@ -378,40 +378,69 @@ class Dataseth5py(data.Dataset):
 
 
 ########################################
-'''
-for i in range(3):
-    if i == 0:
-        csvpath = 'data/train.csv'
-        savepath = 'data/train/'
-    elif i == 1:
-        csvpath = 'data/test.csv'
-        savepath = 'data/test/'
-    else:
-        csvpath = 'data/val.csv'
-        savepath = 'data/val/'
 
-    print(os.getcwd())
-    test = ShapeNetDataset(
-        csv_file=csvpath,
-        sampling="fps",
-        n_point=2000
-    )
+#この関数は経由せずにh5py作ればよい
+def make_h5py_eachdata():
+    for i in range(3):
+        if i == 0:
+            csvpath = 'data/train.csv'
+            savepath = 'data/train/'
+        elif i == 1:
+            csvpath = 'data/test.csv'
+            savepath = 'data/test/'
+        else:
+            csvpath = 'data/val.csv'
+            savepath = 'data/val/'
 
-    dat = pd.read_csv(csvpath)
-    print(dat, dat.info())
+        print(os.getcwd())
+        test = ShapeNetDataset(
+            csv_file=csvpath,
+            sampling="fps",
+            n_point=2048
+        )
 
-    for j in range(len(dat)):
-        dic = test.__getitem__(j)
-        pcds = dic['data']
-        lb = dic['label']
-        nm = dic['name']
-        #print(dic)
+        dat = pd.read_csv(csvpath)
+        print(dat, dat.info())
 
-        #print(type(pcds))
+        for j in range(len(dat)):
+            dic = test.__getitem__(j)
+            pcds = dic['data']
+            lb = dic['label']
+            nm = dic['name']
+            #print(dic)
 
-        with h5py.File(savepath + lb + '_' + nm + '.h5', 'a') as f:
-            f.create_dataset('data', data=pcds)
-            f.create_dataset('label', data=lb)
+            #print(type(pcds))
 
-            f.close()
-'''
+            with h5py.File(savepath + lb + '_' + nm + '.h5', 'a') as f:
+                f.create_dataset('data', data=pcds)
+                f.create_dataset('label', data=lb)
+                f.create_dataset('name', data=nm)
+
+                f.close()
+
+make_h5py_eachdata()
+
+
+# lamp.h5などを作る
+def make_h5py():
+    dirs = ['train/', 'test/', 'val/']
+    dic = ["lamp","chair","table","car","sofa","rifle", "airplane"]
+
+    for dr in dirs:
+        for i, d in enumerate(dic):
+            l = glob.glob('data/' + dr + d +'*')
+            arr = np.zeros((len(l), 2048, 3))
+            lbl = np.full(len(l), i)
+            print(d, lbl)
+
+            for cnt, i in enumerate(l):
+                print(cnt, i)
+                with h5py.File(i, 'r') as f:
+                    arr[cnt] = f['data'].value
+
+            with h5py.File('data/' + dr + d +'.h5', 'a') as f:
+                f.create_dataset('data', data=arr)
+                f.create_dataset('label', data=lbl)
+                f.close()
+
+#make_h5py()

@@ -185,12 +185,15 @@ def main():
         if CONFIG.model == "SkipVariationalFoldingNet":
             with torch.no_grad():
                 output, folding1, mu, log_var = model(data)
+                print(output, folding1, mu)
 
                 if args.kldiv or args.feature_diff:
                     _, _, fake_mu, fake_log_var = model(output)
 
             if args.chamfer:
                 for d, o in zip(data, output):
+                    print('dshape', d.shape)
+                    print('oshape', o.shape)
                     d = d.reshape(1, 2048, -1)
                     o = o.reshape(1, 2048, -1)
                     cl = chamferloss(d, o)
