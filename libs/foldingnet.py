@@ -384,6 +384,7 @@ class SkipValiationalFoldingNet(nn.Module):
         self.encoder = SkipVariationalEncoder(n_points, feat_dims)
         self.decoder = FoldingNetDecoder(feat_dims, shape=shape)
         self.softmax = nn.Softmax(dim=2)
+        self.cnt = 0
 
     def sample_z(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """
@@ -401,7 +402,9 @@ class SkipValiationalFoldingNet(nn.Module):
         # feature = self.softmax(feature)
         feature = self.sample_z(mu, sigma)
         folding2, folding1 = self.decoder(feature)
-        return folding2, folding1, mu, sigma
+        self.cnt += 1
+        print('cnt', self.cnt)
+        return folding2, folding1, mu, sigma, feature
 
     def get_parameter(self):
         return list(self.encoder.parameters()) + list(self.decoder.parameters())
