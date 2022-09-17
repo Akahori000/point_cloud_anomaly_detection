@@ -11,3 +11,6 @@ libs/emd/emd.egg-info
 data/
 git_init.sh
 saved_model/
+result/
+reconstructed/
+original/
