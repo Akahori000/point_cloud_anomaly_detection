@@ -13,8 +13,8 @@ import pandas as pd
 import torch
 from torch.utils import data
 
-from load_obj import loadOBJ
-from sampling import fartherst_point_sampling
+from .load_obj import loadOBJ
+from .sampling import fartherst_point_sampling
 
 
 class ShapeNetDataset(data.Dataset):
@@ -148,6 +148,8 @@ class ShapeNeth5pyDataset(data.Dataset):
             self.label = self.normal_label
 
         else:
+            '''
+            ## これがoriginal ##
             len_data = min(len(self.normal_data), len(self.abnormal_data))
             self.data = np.concatenate(
                 [self.normal_data[:len_data], self.abnormal_data[:len_data]], axis=0
@@ -156,6 +158,16 @@ class ShapeNeth5pyDataset(data.Dataset):
                 [self.normal_name[:len_data], self.abnormal_name[:len_data]], axis=0
             )
             self.label = self.normal_label[:len_data] + self.abnormal_label[:len_data]
+            '''
+            self.data = np.concatenate(
+                [self.normal_data, self.abnormal_data], axis=0
+            )
+            self.name = np.concatenate(
+                [self.normal_name, self.abnormal_name], axis=0
+            )
+            self.label = self.normal_label + self.abnormal_label
+
+
 
     def load_h5py(self, path: list) -> Tuple[list, list]:
         all_data = []
@@ -418,7 +430,7 @@ def make_h5py_eachdata():
 
                 f.close()
 
-make_h5py_eachdata()
+#make_h5py_eachdata()
 
 
 # lamp.h5などを作る
