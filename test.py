@@ -174,6 +174,12 @@ def main():
     kldiv_scores = []
     feature_diff_scores = []
 
+    feature_log = []
+    mu_log = []
+    var_log = []
+    label_log = []
+    name_log = []
+
     for samples in test_dataloader:
         data = samples["data"].float()
         label = samples["label"]
@@ -184,16 +190,23 @@ def main():
         data = data.to(device)
         if CONFIG.model == "SkipVariationalFoldingNet":
             with torch.no_grad():
-                output, folding1, mu, log_var = model(data)
+                output, folding1, mu, log_var, feat = model(data)
                 print(output, folding1, mu)
 
+                for cnt in range(mu.shape[0]):
+                    feature_log.append(feat[cnt].to('cpu').detach().numpy().copy().ravel()) # tensor⇒ndarray2次元⇒ndarray1次元⇒list
+                    mu_log.append(mu[cnt].to('cpu').detach().numpy().copy().ravel())
+                    var_log.append(log_var[cnt].to('cpu').detach().numpy().copy().ravel())
+                    label_log.append(label[cnt].to('cpu').detach().numpy().copy())
+                    name_log.append(name[cnt].to('cpu').detach().numpy().copy())
+
+
+
                 if args.kldiv or args.feature_diff:
-                    _, _, fake_mu, fake_log_var = model(output)
+                    _, _, fake_mu, fake_log_var, feat = model(output)
 
             if args.chamfer:
                 for d, o in zip(data, output):
-                    print('dshape', d.shape)
-                    print('oshape', o.shape)
                     d = d.reshape(1, 2048, -1)
                     o = o.reshape(1, 2048, -1)
                     cl = chamferloss(d, o)
@@ -280,6 +293,30 @@ def main():
             names[n : n + mini_batch_size] = name
 
             n += mini_batch_size
+
+    setting = ''
+    if args.chamfer:
+        setting = setting + 'c_'
+    if args.emd:
+        setting = setting + 'e_'
+    if args.kldiv:
+        setting = setting + 'k_'
+    if args.feature_diff:
+        setting = setting + 'd_'
+
+    ft_dir = './data/calculated_features/' + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/'
+    if not os.path.exists(ft_dir):
+        os.makedirs(ft_dir)
+    fl = pd.DataFrame(np.array(feature_log))
+    fl.to_csv(ft_dir + 'feature.csv')
+    fl = pd.DataFrame(np.array(mu_log))
+    fl.to_csv(ft_dir + 'mu.csv')
+    fl = pd.DataFrame(np.array(var_log))
+    fl.to_csv(ft_dir + 'var.csv')
+    fl = pd.DataFrame(np.array(name_log))
+    fl.to_csv(ft_dir + 'name.csv')
+    fl = pd.DataFrame(np.array(label_log))
+    fl.to_csv(ft_dir + 'label.csv')
 
     if args.chamfer:
         chamfer_scores = rescale(chamfer_scores)
