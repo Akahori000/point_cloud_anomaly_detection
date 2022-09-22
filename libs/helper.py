@@ -343,8 +343,8 @@ def train_variational_foldingnet(
         points = points.to(device)
 
         # Forword Pass
-        output, folding1, mu, sigma = model(points)
-        _, _, fake_mu, fake_sigma = model(output)
+        output, folding1, mu, sigma, _ = model(points)
+        _, _, fake_mu, fake_sigma, _ = model(output)
 
         if reconstruction_loss == "CD":
             inner_loss = inner_criterion(points, folding1)
