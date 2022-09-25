@@ -120,7 +120,7 @@ def main():
 
     CONFIG = Dict(config_dict)
 
-    print(config_dict)
+    #print(config_dict)
 
     torch.autograd.set_detect_anomaly(True)
 
@@ -159,7 +159,7 @@ def main():
 
     epoch, model, optimizer = resume(args.checkpoint_path, model, optimizer)
 
-    print(f"---------- Start testing for epoch{epoch} ----------")
+    #print(f"---------- Start testing for epoch{epoch} ----------")
 
     model.eval()
     pred = []
@@ -191,7 +191,7 @@ def main():
         if CONFIG.model == "SkipVariationalFoldingNet":
             with torch.no_grad():
                 output, folding1, mu, log_var, feat = model(data)
-                print(output, folding1, mu)
+                #print(output, folding1, mu)
 
                 for cnt in range(mu.shape[0]):
                     feature_log.append(feat[cnt].to('cpu').detach().numpy().copy().ravel()) # tensor⇒ndarray2次元⇒ndarray1次元⇒list
@@ -304,7 +304,15 @@ def main():
     if args.feature_diff:
         setting = setting + 'd_'
 
-    ft_dir = './data/calculated_features/' + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/'
+
+    dir_cls = './data/calculated_features/model1_' + CONFIG.abnormal_class[0] + '/'
+    dir_eps = dir_cls + 'test_all_epocs/'
+    ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/'
+
+    if not os.path.exists(dir_cls):
+        os.makedirs(dir_cls)
+    if not os.path.exists(dir_eps):
+        os.makedirs(dir_eps)
     if not os.path.exists(ft_dir):
         os.makedirs(ft_dir)
     fl = pd.DataFrame(np.array(feature_log))
@@ -351,9 +359,9 @@ def main():
         df = pd.DataFrame(list(zip(names, labels, pred)))
         df.to_csv("result.csv")
 
-    print(f"ROC:{roc_auc}")
+    print(args.checkpoint_path, f"ROC:{roc_auc}")
 
-    print("Done")
+    #print("Done")
 
 
 if __name__ == "__main__":
