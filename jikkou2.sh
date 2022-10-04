@@ -2,11 +2,11 @@
 
 # run python scripts repeatedly to make output file containg all the output texts.
 # how to execute: sh 4SA_2022Sep24.sh
-
 ######################
 # Setup block #######
 #####################
 
+# モデル名は出力3, 入力1変更
 # 出力ファイル1/3
 outfile="./data/calculated_features/model1_chair/test_result/result_test_chamfer.txt"
 if [ -e ${outfile} ]; then
@@ -22,7 +22,7 @@ pthdir="./saved_model/checkpoint"
 # Main block #######
 #####################
 x=1
-while [ $x -ne 300 ] #1-299
+while [ $x -ne 300 ] #1-299 
 do
 pthfile=${pthdir}"/"${x}".pth"
 if [ -e ${pyfile} ]; then
