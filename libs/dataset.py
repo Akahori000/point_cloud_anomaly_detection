@@ -101,7 +101,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         normal_data_paths = []
         for n_class in normal_class:
             normal_data_paths.append(os.path.join(root_path, split, f"{n_class}.h5"))
-        print(normal_data_paths)
+        #print(normal_data_paths)
         normal_data, normal_name = self.load_h5py(normal_data_paths)
 
         normal_data = np.concatenate(normal_data, axis=0)
@@ -148,7 +148,7 @@ class ShapeNeth5pyDataset(data.Dataset):
             self.label = self.normal_label
 
         else:
-            '''
+            
             ## これがoriginal ##
             len_data = min(len(self.normal_data), len(self.abnormal_data))
             self.data = np.concatenate(
@@ -158,15 +158,15 @@ class ShapeNeth5pyDataset(data.Dataset):
                 [self.normal_name[:len_data], self.abnormal_name[:len_data]], axis=0
             )
             self.label = self.normal_label[:len_data] + self.abnormal_label[:len_data]
-            '''
-            self.data = np.concatenate(
-                [self.normal_data, self.abnormal_data], axis=0
-            )
-            self.name = np.concatenate(
-                [self.normal_name, self.abnormal_name], axis=0
-            )
-            self.label = self.normal_label + self.abnormal_label
-
+            
+            ## これがall ##
+            # self.data = np.concatenate(
+            #     [self.normal_data, self.abnormal_data], axis=0
+            # )
+            # self.name = np.concatenate(
+            #     [self.normal_name, self.abnormal_name], axis=0
+            # )
+            # self.label = self.normal_label + self.abnormal_label
 
 
     def load_h5py(self, path: list) -> Tuple[list, list]:
@@ -180,7 +180,7 @@ class ShapeNeth5pyDataset(data.Dataset):
             f.close()
             all_data.append(data)
             all_label.append(label)
-            print(f"{label[0]} : {len(data)}")
+            #print(f"{label[0]} : {len(data)}")
         return all_data, all_label
 
     def __getitem__(self, idx: int) -> dict:
