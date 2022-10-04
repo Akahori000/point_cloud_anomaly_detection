@@ -6,15 +6,18 @@
 ######################
 # Setup block #######
 #####################
-outfile="./data/calculated_features/model1_rifle/result_test.txt"
+
+# 出力ファイル1/3
+outfile="./data/calculated_features/model1_chair/test_result/result_test_chamfer.txt"
 if [ -e ${outfile} ]; then
 rm ${outfile}
 fi
 
+# 使うepoc
 pyfile="test.py"
 yamlfile="./config/sample.yaml"
+#pthdir="./data/calculated_features/model1_chair/saved_model/checkpoint"
 pthdir="./saved_model/checkpoint"
-
 ####################
 # Main block #######
 #####################
@@ -38,7 +41,7 @@ echo "Finish all the procedure"
 
 
 
-outfile1="./data/calculated_features/model1_rifle/result_test_chamfer_kldiv.txt"
+outfile1="./data/calculated_features/model1_chair/test_result/result_test_chamfer_kldiv.txt"
 if [ -e ${outfile1} ]; then
 rm ${outfile1}
 fi
@@ -62,7 +65,7 @@ done
 echo "Finish all the procedure"
 
 
-outfile2="./data/calculated_features/model1_rifle/result_test_emd.txt"
+outfile2="./data/calculated_features/model1_chair/test_result/result_test_emd.txt"
 if [ -e ${outfile2} ]; then
 rm ${outfile2}
 fi
