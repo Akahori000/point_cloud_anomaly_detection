@@ -306,9 +306,15 @@ def main():
 
 
     dir_cls = './data/calculated_features/model1_' + CONFIG.abnormal_class[0] + '/'
-    dir_eps = dir_cls + 'test_all_epocs/'
-    #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/'
-    ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[66:])[:-4])) + '_data' + str(len(name_log)) + '/'
+    dir_eps = dir_cls + 'test_all_epocs_with_recalculated_model/'
+    ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはsaved_modelからとるとき
+
+
+    #dir_eps = dir_cls + 'both_features/'
+    #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[66:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_airplaneからとるとき
+    #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[62:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_lamp, sofa
+    #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[61:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_car
+    #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[63:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_rifle, chair
 
     if not os.path.exists(dir_cls):
         os.makedirs(dir_cls)
@@ -350,6 +356,10 @@ def main():
 
     # re_scaled = rescale(pred)
     re_scaled = np.array(re_scaled, dtype=float)
+
+    df = pd.DataFrame(re_scaled)
+    df.to_csv(ft_dir + "anomaly_score.csv")
+
     fpr, tpr, _ = roc_curve(labels, re_scaled)
     roc_auc = auc(fpr, tpr)
 

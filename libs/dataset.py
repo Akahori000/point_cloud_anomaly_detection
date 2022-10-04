@@ -101,7 +101,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         normal_data_paths = []
         for n_class in normal_class:
             normal_data_paths.append(os.path.join(root_path, split, f"{n_class}.h5"))
-        #print(normal_data_paths)
+        print(normal_data_paths)
         normal_data, normal_name = self.load_h5py(normal_data_paths)
 
         normal_data = np.concatenate(normal_data, axis=0)
@@ -180,7 +180,7 @@ class ShapeNeth5pyDataset(data.Dataset):
             f.close()
             all_data.append(data)
             all_label.append(label)
-            #print(f"{label[0]} : {len(data)}")
+            print(f"{label[0]} : {len(data)}")
         return all_data, all_label
 
     def __getitem__(self, idx: int) -> dict:

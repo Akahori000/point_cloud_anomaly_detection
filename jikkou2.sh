@@ -2,13 +2,13 @@
 
 # run python scripts repeatedly to make output file containg all the output texts.
 # how to execute: sh 4SA_2022Sep24.sh
-
 ######################
 # Setup block #######
 #####################
 
+# モデル名は出力3, 入力1変更
 # 出力ファイル1/3
-outfile="./data/calculated_features/model1_airplane/result_test.txt"
+outfile="./data/calculated_features/model1_chair/test_result/result_test_chamfer.txt"
 if [ -e ${outfile} ]; then
 rm ${outfile}
 fi
@@ -16,12 +16,13 @@ fi
 # 使うepoc
 pyfile="test.py"
 yamlfile="./config/sample.yaml"
-pthdir="./data/calculated_features/model1_airplane/saved_model/checkpoint"
+#pthdir="./data/calculated_features/model1_chair/saved_model/checkpoint"
+pthdir="./saved_model/checkpoint"
 ####################
 # Main block #######
 #####################
 x=1
-while [ $x -ne 300 ] #1-299
+while [ $x -ne 300 ] #1-299 
 do
 pthfile=${pthdir}"/"${x}".pth"
 if [ -e ${pyfile} ]; then
@@ -40,7 +41,7 @@ echo "Finish all the procedure"
 
 
 
-outfile1="./data/calculated_features/model1_airplane/result_test_chamfer_kldiv.txt"
+outfile1="./data/calculated_features/model1_chair/test_result/result_test_chamfer_kldiv.txt"
 if [ -e ${outfile1} ]; then
 rm ${outfile1}
 fi
@@ -64,7 +65,7 @@ done
 echo "Finish all the procedure"
 
 
-outfile2="./data/calculated_features/model1_airplane/result_test_emd.txt"
+outfile2="./data/calculated_features/model1_chair/test_result/result_test_emd.txt"
 if [ -e ${outfile2} ]; then
 rm ${outfile2}
 fi

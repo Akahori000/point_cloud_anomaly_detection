@@ -403,6 +403,7 @@ class SkipValiationalFoldingNet(nn.Module):
         feature = self.sample_z(mu, sigma)
         folding2, folding1 = self.decoder(feature)
         self.cnt += 1
+        print('cnt', self.cnt)
         return folding2, folding1, mu, sigma, feature
 
     def get_parameter(self):

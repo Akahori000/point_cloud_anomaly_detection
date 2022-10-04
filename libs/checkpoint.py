@@ -30,7 +30,7 @@ def resume(
 
     assert os.path.exists(resume_path), "there is no checkpoint at the result folder"
 
-    #print("loading checkpoint {}".format(resume_path))
+    print("loading checkpoint {}".format(resume_path))
     checkpoint = torch.load(resume_path, map_location=lambda storage, loc: storage)
 
     begin_epoch = checkpoint["epoch"]
@@ -38,6 +38,6 @@ def resume(
 
     optimizer.load_state_dict(checkpoint["optimizer"])
 
-    #print("Successfly loaded the weight of {} epoch".format(begin_epoch))
+    print("Successfly loaded the weight of {} epoch".format(begin_epoch))
 
     return begin_epoch, model, optimizer
