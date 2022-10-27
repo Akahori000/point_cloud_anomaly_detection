@@ -72,6 +72,7 @@ def main():
         normal_class=CONFIG.normal_class,
         abnormal_class=[],
         n_point=CONFIG.n_points,
+        test_way="half",
         random_rotate=CONFIG.rotate,
         random_jitter=CONFIG.jitter,
         random_translate=CONFIG.translate,

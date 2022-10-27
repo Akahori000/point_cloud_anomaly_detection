@@ -82,6 +82,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         normal_class: list,
         abnormal_class: list,
         n_point: int,
+        test_way: str,
         random_rotate: bool = False,
         random_jitter: bool = False,
         random_translate: bool = False,
@@ -97,6 +98,8 @@ class ShapeNeth5pyDataset(data.Dataset):
         self.random_rotate = random_rotate
         self.random_jitter = random_jitter
         self.random_translate = random_translate
+        self.test_way = test_way
+        #print('testway', test_way)
 
         normal_data_paths = []
         for n_class in normal_class:
@@ -107,7 +110,7 @@ class ShapeNeth5pyDataset(data.Dataset):
         normal_data = np.concatenate(normal_data, axis=0)
         normal_name = np.concatenate(normal_name, axis=0)
 
-        # 正常データをシャッフルする
+        # 正常データをシャッフルする ここではデータ単位でシャッフルするので、100データあったら、100データがシャッフルされる感じで、pointcloudの中まではかわっていない模様。
         if split == "test":
             tmp = list(zip(normal_data, normal_name))
             random.shuffle(tmp)
@@ -148,26 +151,26 @@ class ShapeNeth5pyDataset(data.Dataset):
             self.label = self.normal_label
 
         else:
-            
-            ## これがoriginal ##
-            len_data = min(len(self.normal_data), len(self.abnormal_data))
-            self.data = np.concatenate(
-                [self.normal_data[:len_data], self.abnormal_data[:len_data]], axis=0
-            )
-            self.name = np.concatenate(
-                [self.normal_name[:len_data], self.abnormal_name[:len_data]], axis=0
-            )
-            self.label = self.normal_label[:len_data] + self.abnormal_label[:len_data]
-            
-            ## これがall ##
-            # self.data = np.concatenate(
-            #     [self.normal_data, self.abnormal_data], axis=0
-            # )
-            # self.name = np.concatenate(
-            #     [self.normal_name, self.abnormal_name], axis=0
-            # )
-            # self.label = self.normal_label + self.abnormal_label
-
+            if self.test_way == "all":
+                print('test_way = all')
+                self.data = np.concatenate(
+                    [self.normal_data, self.abnormal_data], axis=0
+                )
+                self.name = np.concatenate(
+                    [self.normal_name, self.abnormal_name], axis=0
+                )
+                self.label = self.normal_label + self.abnormal_label
+            else:
+                print('test_way = original half')
+                ## これがoriginal ##
+                len_data = min(len(self.normal_data), len(self.abnormal_data))
+                self.data = np.concatenate(
+                    [self.normal_data[:len_data], self.abnormal_data[:len_data]], axis=0
+                )
+                self.name = np.concatenate(
+                    [self.normal_name[:len_data], self.abnormal_name[:len_data]], axis=0
+                )
+                self.label = self.normal_label[:len_data] + self.abnormal_label[:len_data]
 
     def load_h5py(self, path: list) -> Tuple[list, list]:
         all_data = []
@@ -177,6 +180,7 @@ class ShapeNeth5pyDataset(data.Dataset):
             f = h5py.File(h5_name, "r+")
             data = f["data"][:].astype("float32")
             label = f["label"][:]
+            
             f.close()
             all_data.append(data)
             all_label.append(label)

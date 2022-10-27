@@ -1,0 +1,21 @@
+save_dir: saved_model
+normal_class: ["lamp","chair","airplane","car","sofa","rifle"]
+abnormal_class: ["table"]
+
+root_path: data/data_random_val_but_named_test
+
+model: SkipVariationalFoldingNet
+weight: [1.0, 1.0, 1.0, 1.0]
+reconstruction_loss: CD
+rotate: True
+jitter: False
+translate: False
+batch_size: 41
+test_batch_size: 100
+num_epochs: 300
+
+shape: sphere
+feat_dims: 512
+n_points: 2048
+
+name: sample

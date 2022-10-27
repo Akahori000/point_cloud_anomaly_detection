@@ -67,6 +67,9 @@ def get_parameters():
         help="Save points or not",
     )
 
+    parser.add_argument("--feat_save", type=str, help="the kind of data used for feat_calc")
+    parser.add_argument("--test_way", type=str, help="the kind of data used for feat_calc")
+
     return parser.parse_args()
 
 
@@ -114,6 +117,8 @@ def main():
 
     args = get_parameters()
 
+    print(args.test_way, args.feat_save)
+
     # configuration
     with open(args.config, "r") as f:
         config_dict = yaml.safe_load(f)
@@ -132,6 +137,7 @@ def main():
         normal_class=CONFIG.normal_class,
         abnormal_class=CONFIG.abnormal_class,
         n_point=CONFIG.n_points,
+        test_way=args.test_way,
         random_rotate=False,
         random_jitter=False,
         random_translate=False,
@@ -180,10 +186,12 @@ def main():
     label_log = []
     name_log = []
 
+    scnt = 0
     for samples in test_dataloader:
         data = samples["data"].float()
         label = samples["label"]
         name = samples["name"]
+        scnt += 1
 
         mini_batch_size = data.size()[0]
 
@@ -305,12 +313,16 @@ def main():
         setting = setting + 'd_'
 
 
-    dir_cls = './data/calculated_features/model1_' + CONFIG.abnormal_class[0] + '/'
-    dir_eps = dir_cls + 'test_all_epocs_with_recalculated_model/'
+    dir_cls = './data/calculated_features_random/model1_' + CONFIG.abnormal_class[0] + '/'
+    if args.feat_save == 'both':
+        dir_eps = dir_cls + 'both_features/'
+    else:
+        dir_eps = dir_cls + 'test_all_epocs/'
+    resultdir = dir_cls + 'test_result/'
+
     ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[25:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはsaved_modelからとるとき
 
 
-    #dir_eps = dir_cls + 'both_features/'
     #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[66:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_airplaneからとるとき
     #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[62:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_lamp, sofa
     #ft_dir = dir_eps + setting + 'epoc_' + '{:0=3}'.format(int((args.checkpoint_path[61:])[:-4])) + '_data' + str(len(name_log)) + '/' # こちらはdata/model1_car
@@ -322,6 +334,8 @@ def main():
         os.makedirs(dir_eps)
     if not os.path.exists(ft_dir):
         os.makedirs(ft_dir)
+    if not os.path.exists(resultdir):
+        os.makedirs(resultdir)
     fl = pd.DataFrame(np.array(feature_log))
     fl.to_csv(ft_dir + 'feature.csv')
     fl = pd.DataFrame(np.array(mu_log))
@@ -364,7 +378,7 @@ def main():
     roc_auc = auc(fpr, tpr)
 
     if args.histgram:
-        vis_histgram(labels, pred, "lamp_histgram.png")
+        vis_histgram(labels, pred, "histgram.png")
 
     if args.save_points:
         df = pd.DataFrame(list(zip(names, labels, pred)))

@@ -338,9 +338,11 @@ def train_variational_foldingnet(
     softmax = nn.Softmax(dim=2)
 
     t_epoch_start = time.time()
+    cnt_t = 0
     for samples in loader:
         points = samples["data"].float()
         points = points.to(device)
+        cnt_t += 1
 
         # Forword Pass
         output, folding1, mu, sigma, _ = model(points)
@@ -466,6 +468,7 @@ def train_variational_foldingnet(
     out_point = output[0].to("cpu").detach().numpy()
     np.save(save_dir + f"/reconstructed/{epoch}.npy", out_point)
 
+    print('cnt_t', cnt_t, 'epoch', epoch )
     return (
         epoch_loss,
         epoch_inner_loss,
