@@ -411,7 +411,7 @@ def make_h5py_eachdata():
         print(os.getcwd())
         test = ShapeNetDataset(
             csv_file=csvpath,
-            sampling="fps",
+            sampling="random",
             n_point=2048
         )
 
@@ -439,8 +439,9 @@ def make_h5py_eachdata():
 
 # lamp.h5などを作る
 def make_h5py():
-    dirs = ['train/', 'test/', 'val/']
-    dic = ["lamp","chair","table","car","sofa","rifle", "airplane"]
+    print('getcwd:      ', os.getcwd())
+    dirs = ['objset2/train/', 'objset2/test/', 'objset2/val/']
+    dic = ["bookshelf","laptop","knife","train","motorbike","guitar", "faucet"]
 
     for dr in dirs:
         for i, d in enumerate(dic):
