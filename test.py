@@ -152,7 +152,7 @@ def main():
         model = SkipFoldingNet(CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape)
     elif CONFIG.model == "SkipVariationalFoldingNet":
         model = SkipValiationalFoldingNet(
-            CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape
+            CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape, CONFIG.modeltype
         )
     model.to(device)
 
@@ -198,20 +198,35 @@ def main():
         data = data.to(device)
         if CONFIG.model == "SkipVariationalFoldingNet":
             with torch.no_grad():
-                output, folding1, mu, log_var, feat = model(data)
-                #print(output, folding1, mu)
-
-                for cnt in range(mu.shape[0]):
-                    feature_log.append(feat[cnt].to('cpu').detach().numpy().copy().ravel()) # tensor⇒ndarray2次元⇒ndarray1次元⇒list
-                    mu_log.append(mu[cnt].to('cpu').detach().numpy().copy().ravel())
-                    var_log.append(log_var[cnt].to('cpu').detach().numpy().copy().ravel())
-                    label_log.append(label[cnt].to('cpu').detach().numpy().copy())
-                    name_log.append(name[cnt].to('cpu').detach().numpy().copy())
+                # ---VAEのとき
+                if CONFIG.modeltype != 'AE':
+                    output, folding1, mu, log_var, feat = model(data)
+                    #print(output, folding1, mu)
+                    for cnt in range(mu.shape[0]):
+                        feature_log.append(feat[cnt].to('cpu').detach().numpy().copy().ravel()) # tensor⇒ndarray2次元⇒ndarray1次元⇒list
+                        mu_log.append(mu[cnt].to('cpu').detach().numpy().copy().ravel())
+                        var_log.append(log_var[cnt].to('cpu').detach().numpy().copy().ravel())
+                        label_log.append(label[cnt].to('cpu').detach().numpy().copy())
+                        name_log.append(name[cnt].to('cpu').detach().numpy().copy())
+                # ---AEのとき
+                else:
+                    output, folding1, mu = model(data)
+                    for cnt in range(mu.shape[0]):
+                        mu_log.append(mu[cnt].to('cpu').detach().numpy().copy().ravel())     # tensor⇒ndarray2次元⇒ndarray1次元⇒list
+                        label_log.append(label[cnt].to('cpu').detach().numpy().copy())
+                        name_log.append(name[cnt].to('cpu').detach().numpy().copy())
 
 
 
                 if args.kldiv or args.feature_diff:
-                    _, _, fake_mu, fake_log_var, feat = model(output)
+                    # ---VAEのとき
+                    if CONFIG.modeltype != 'AE':
+                        _, _, fake_mu, fake_log_var, feat = model(output)
+                    # ---AEのとき
+                    else:
+                        _, _, fake_mu = model(output)
+
+
 
             if args.chamfer:
                 for d, o in zip(data, output):
@@ -256,6 +271,10 @@ def main():
                 #     #     -0.5 * torch.sum(1 + l - m ** 2 - l.exp(), dim=1), dim=0
                 #     # )
                 #     kldiv_scores.append(kldiv)
+
+                if CONFIG.modeltype == 'AE':
+                    print('warn kldiv is used but not modified for AE')
+
             else:
                 for _ in range(mini_batch_size):
                     kldiv_scores.append(0)
@@ -275,6 +294,9 @@ def main():
                         np.power(diff_feat.to("cpu").numpy(), 2.0)
                     )
                     feature_diff_scores.append(feature_diff_score)
+
+                if CONFIG.modeltype == 'AE':
+                    print('warn feature_diff is used but not modified for AE')
             else:
                 for _ in range(mini_batch_size):
                     feature_diff_scores.append(0)
@@ -312,8 +334,11 @@ def main():
     if args.feature_diff:
         setting = setting + 'd_'
 
-
-    dir_cls = './data/calculated_features_random/model1_' + CONFIG.abnormal_class[0] + '/'
+    if CONFIG.modeltype != 'AE':
+        dir_cls = './data/objset2/calculated_features/model1_' + CONFIG.abnormal_class[0] + '/'
+    else:
+        dir_cls = './data/objset2/calculated_features/modelAE_' + CONFIG.abnormal_class[0] + '/'
+        
     if args.feat_save == 'both':
         dir_eps = dir_cls + 'both_features/'
     else:
@@ -336,12 +361,15 @@ def main():
         os.makedirs(ft_dir)
     if not os.path.exists(resultdir):
         os.makedirs(resultdir)
-    fl = pd.DataFrame(np.array(feature_log))
-    fl.to_csv(ft_dir + 'feature.csv')
+
+    if CONFIG.modeltype != 'AE':
+        fl = pd.DataFrame(np.array(feature_log))
+        fl.to_csv(ft_dir + 'feature.csv')
+        fl = pd.DataFrame(np.array(var_log))
+        fl.to_csv(ft_dir + 'var.csv')
+        
     fl = pd.DataFrame(np.array(mu_log))
     fl.to_csv(ft_dir + 'mu.csv')
-    fl = pd.DataFrame(np.array(var_log))
-    fl.to_csv(ft_dir + 'var.csv')
     fl = pd.DataFrame(np.array(name_log))
     fl.to_csv(ft_dir + 'name.csv')
     fl = pd.DataFrame(np.array(label_log))
