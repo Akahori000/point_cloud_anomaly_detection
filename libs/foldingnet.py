@@ -320,11 +320,12 @@ class SkipFoldingNet(nn.Module):
 
 
 class SkipVariationalEncoder(nn.Module):
-    def __init__(self, n_points: int, feat_dims: int) -> None:
+    def __init__(self, n_points: int, feat_dims: int, modeltype: str) -> None:
         super().__init__()
         self.n_points = n_points
         self.k = 16
         self.feat_dims = feat_dims
+        self.modeltype = modeltype
         self.mlp1 = nn.Sequential(
             nn.Conv1d(12, 64, 1),
             nn.ReLU(),
@@ -349,7 +350,9 @@ class SkipVariationalEncoder(nn.Module):
         #     nn.Conv1d(feat_dims, feat_dims, 1),
         # )
         self.fc_mu = nn.Conv1d(1024 + 64, feat_dims, 1)
-        self.fc_var = nn.Conv1d(1024 + 64, feat_dims, 1)
+
+        if modeltype != 'AE':
+            self.fc_var = nn.Conv1d(1024 + 64, feat_dims, 1)
 
     def graph_layer(self, x: torch.tensor, idx: int) -> torch.tensor:
         x = local_maxpool(x, idx)
@@ -374,17 +377,25 @@ class SkipVariationalEncoder(nn.Module):
         x = torch.max(cat_feat, 2, keepdim=True)[0]
 
         mu = self.fc_mu(x)
-        sigma = self.fc_var(x)
-        return mu, sigma
+
+        # ---------VAEのとき---------
+        if self.modeltype != 'AE':
+            sigma = self.fc_var(x)
+            return mu, sigma
+
+        # ---------AEのとき---------
+        else:
+            return mu
 
 
 class SkipValiationalFoldingNet(nn.Module):
-    def __init__(self, n_points: int, feat_dims: int, shape: str) -> None:
+    def __init__(self, n_points: int, feat_dims: int, shape: str, modeltype: str) -> None:
         super().__init__()
-        self.encoder = SkipVariationalEncoder(n_points, feat_dims)
+        self.encoder = SkipVariationalEncoder(n_points, feat_dims, modeltype)
         self.decoder = FoldingNetDecoder(feat_dims, shape=shape)
         self.softmax = nn.Softmax(dim=2)
         self.cnt = 0
+        self.modeltype = modeltype
 
     def sample_z(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """
@@ -396,15 +407,24 @@ class SkipValiationalFoldingNet(nn.Module):
         return eps * std + mu
 
     def forward(self, input: torch.tensor):
-        mu, sigma = self.encoder(input)
-        mu = mu.transpose(2, 1)
-        sigma = sigma.transpose(2, 1)
-        # feature = self.softmax(feature)
-        feature = self.sample_z(mu, sigma)
-        folding2, folding1 = self.decoder(feature)
         self.cnt += 1
-        print('cnt', self.cnt)
-        return folding2, folding1, mu, sigma, feature
+        # ---------VAEのとき---------
+        if self.modeltype != 'AE':
+            mu, sigma = self.encoder(input)
+            mu = mu.transpose(2, 1)
+            sigma = sigma.transpose(2, 1)
+            # feature = self.softmax(feature)
+            feature = self.sample_z(mu, sigma)
+            folding2, folding1 = self.decoder(feature)
+
+            return folding2, folding1, mu, sigma, feature
+        # ---------AEのとき---------
+        else:
+            mu = self.encoder(input)  
+            mu = mu.transpose(2, 1)
+            folding2, folding1 = self.decoder(mu)
+
+            return folding2, folding1, mu
 
     def get_parameter(self):
         return list(self.encoder.parameters()) + list(self.decoder.parameters())

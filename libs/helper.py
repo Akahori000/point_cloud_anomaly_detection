@@ -317,6 +317,7 @@ def train_variational_foldingnet(
     epoch: int,
     device: str,
     save_dir: str,
+    modeltype: str,
 ) -> Tuple[float, float, float, float, float]:
 
     loss_meter = AverageMeter("loss", ":.4e")
@@ -345,8 +346,13 @@ def train_variational_foldingnet(
         cnt_t += 1
 
         # Forword Pass
-        output, folding1, mu, sigma, _ = model(points)
-        _, _, fake_mu, fake_sigma, _ = model(output)
+        if modeltype != 'AE':
+            output, folding1, mu, sigma, _ = model(points)
+            _, _, fake_mu, fake_sigma, _ = model(output)
+        else:
+            output, folding1, mu = model(points)
+            _, _, fake_mu = model(output)
+
 
         if reconstruction_loss == "CD":
             inner_loss = inner_criterion(points, folding1)
@@ -361,40 +367,63 @@ def train_variational_foldingnet(
         # inf_loss = torch.sum(Categorical(probs=softmax_feat).entropy())
 
         """KL Divergence between N(mu, sigma^2) and N(0, 1)"""
-        mu = torch.squeeze(mu)
-        sigma = torch.squeeze(sigma)
-        kld_loss = torch.mean(
-            0.5
-            * torch.sum(
-                mu ** 2 + sigma ** 2 - torch.log(sigma ** 2 + 1e-12) - 1, dim=1
-            ),
-            dim=0,
-        )
-        # """KL Divergence between N(mu, sigma^2) and N(fake_mu, fake_sigma^2)"""
-        # fake_mu = torch.squeeze(fake_mu)
-        # fake_sigma = torch.squeeze(fake_sigma)
-        # fake_kld_loss = torch.mean(
-        #     0.5
-        #     * torch.sum(
-        #         torch.log(fake_sigma ** 2 + 1e-12)
-        #         - torch.log(sigma ** 2 + 1e-12)
-        #         + (sigma ** 2 + (mu - fake_mu) ** 2) / fake_sigma ** 2
-        #         - 1,
-        #         dim=1,
-        #     ),
-        #     dim=0,
-        # )
-        """KL Divergence between N(fake_mu, fake_sigma^2) and N(0, 1)"""
-        fake_mu = torch.squeeze(fake_mu)
-        fake_sigma = torch.squeeze(fake_sigma)
-        fake_kld_loss = torch.mean(
-            0.5
-            * torch.sum(
-                fake_mu ** 2 + fake_sigma ** 2 - torch.log(fake_sigma ** 2 + 1e-12) - 1,
-                dim=1,
-            ),
-            dim=0,
-        )
+        # ---------こちらがVAEモデル---------
+        if modeltype != 'AE':
+            mu = torch.squeeze(mu)
+            sigma = torch.squeeze(sigma)
+            kld_loss = torch.mean(
+                0.5
+                * torch.sum(
+                    mu ** 2 + sigma ** 2 - torch.log(sigma ** 2 + 1e-12) - 1, dim=1
+                ),
+                dim=0,
+            )
+            # """KL Divergence between N(mu, sigma^2) and N(fake_mu, fake_sigma^2)"""
+            # fake_mu = torch.squeeze(fake_mu)
+            # fake_sigma = torch.squeeze(fake_sigma)
+            # fake_kld_loss = torch.mean(
+            #     0.5
+            #     * torch.sum(
+            #         torch.log(fake_sigma ** 2 + 1e-12)
+            #         - torch.log(sigma ** 2 + 1e-12)
+            #         + (sigma ** 2 + (mu - fake_mu) ** 2) / fake_sigma ** 2
+            #         - 1,
+            #         dim=1,
+            #     ),
+            #     dim=0,
+            # )
+            """KL Divergence between N(fake_mu, fake_sigma^2) and N(0, 1)"""
+            fake_mu = torch.squeeze(fake_mu)
+            fake_sigma = torch.squeeze(fake_sigma)
+            fake_kld_loss = torch.mean(
+                0.5
+                * torch.sum(
+                    fake_mu ** 2 + fake_sigma ** 2 - torch.log(fake_sigma ** 2 + 1e-12) - 1,
+                    dim=1,
+                ),
+                dim=0,
+            )
+        # --------こちらがAEモデル---------
+        else:
+            mu = torch.squeeze(mu)
+            kld_loss = torch.mean(
+                0.5
+                * torch.sum(
+                    mu ** 2, 
+                    dim=1
+                ),
+                dim=0,
+            )
+            """KL Divergence between N(fake_mu, fake_sigma^2) and N(0, 1)"""
+            fake_mu = torch.squeeze(fake_mu)
+            fake_kld_loss = torch.mean(
+                0.5
+                * torch.sum(
+                    fake_mu ** 2,
+                    dim=1,
+                ),
+                dim=0,
+            )
 
         # G = torch.distributions.Normal(0, 1)
         # P = torch.distributions.Normal(mu, log_var)

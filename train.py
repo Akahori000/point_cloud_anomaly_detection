@@ -82,7 +82,7 @@ def main():
         train_dataset, batch_size=CONFIG.batch_size, shuffle=True
     )
 
-    model = SkipValiationalFoldingNet(CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape)
+    model = SkipValiationalFoldingNet(CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape, CONFIG.modeltype)
 
     model.to(device)
     if CONFIG.reconstruction_loss == "CD":
@@ -120,6 +120,7 @@ def main():
             epoch,
             device,
             CONFIG.save_dir,
+            CONFIG.modeltype,
         )
         print(
             f"inner_loss:{epoch_inner_loss} || out_loss:{epoch_out_loss} || kld_loss:{epoch_kld_loss}"
