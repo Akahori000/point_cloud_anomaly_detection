@@ -155,7 +155,9 @@ def main():
             CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape, CONFIG.modeltype
         )
     model.to(device)
-
+    model = torch.nn.DataParallel(model) # make parallel
+    torch.backends.cudnn.benchmark = True
+    
     lr = 0.0001 * 16 / CONFIG.batch_size
     beta1, beta2 = 0.9, 0.999
 

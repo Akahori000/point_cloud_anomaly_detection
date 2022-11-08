@@ -85,6 +85,9 @@ def main():
     model = SkipValiationalFoldingNet(CONFIG.n_points, CONFIG.feat_dims, CONFIG.shape, CONFIG.modeltype)
 
     model.to(device)
+    model = torch.nn.DataParallel(model) # make parallel
+    torch.backends.cudnn.benchmark = True
+
     if CONFIG.reconstruction_loss == "CD":
         # lr = 0.0001 * 100 / CONFIG.batch_size
         lr = 0.001

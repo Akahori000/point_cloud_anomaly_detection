@@ -1,0 +1,21 @@
+save_dir: saved_model
+normal_class: ["lamp","chair","airplane","car","sofa","rifle","faucet", "bookshelf","laptop","knife","train","motorbike","guitar"]
+abnormal_class: ["airplane"]
+
+root_path: data/objset3/data6
+
+model: SkipVariationalFoldingNet
+weight: [1.0, 1.0, 1.0, 1.0]
+reconstruction_loss: CD
+rotate: True
+jitter: False
+translate: False
+batch_size: 40
+test_batch_size: 100
+num_epochs: 300
+
+shape: sphere
+feat_dims: 512
+n_points: 2048
+
+name: sample
