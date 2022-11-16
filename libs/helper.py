@@ -21,6 +21,7 @@ from .visualize import vis_points_3d
 
 matplotlib.use("Agg")
 
+accum_iter = 5
 
 def train_foldingnet(
     loader: DataLoader,
@@ -53,7 +54,7 @@ def train_foldingnet(
     softmax = nn.Softmax(dim=2)
 
     t_epoch_start = time.time()
-    for samples in loader:
+    for batch_idx, samples in enumerate(loader):
         points = samples["data"].float()
         points = points.to(device)
 
@@ -115,10 +116,16 @@ def train_foldingnet(
         inf_loss_meter.update(inf_loss.item())
         loss_meter.update(loss.item())
 
+        loss = loss /accum_iter
+
         # Backword Pass
-        optimizer.zero_grad()
         loss.backward()
-        optimizer.step()
+
+        # weights update
+        if ((batch_idx + 1) % accum_iter == 0) or (batch_idx + 1 == len(loader)):
+            optimizer.step()
+            optimizer.zero_grad()
+            print('batch_idx weight is updated', batch_idx)
 
     epoch_time = time.time() - t_epoch_start
     epoch_loss = loss_meter.avg
@@ -340,7 +347,7 @@ def train_variational_foldingnet(
 
     t_epoch_start = time.time()
     cnt_t = 0
-    for samples in loader:
+    for batch_idx, samples in enumerate(loader):
         points = samples["data"].float()
         points = points.to(device)
         cnt_t += 1
@@ -459,10 +466,16 @@ def train_variational_foldingnet(
         fake_kld_loss_meter.update(fake_kld_loss.item())
         loss_meter.update(loss.item())
 
+        loss = loss /accum_iter
+
         # Backword Pass
-        optimizer.zero_grad()
         loss.backward()
-        optimizer.step()
+
+        # weights update
+        if ((batch_idx + 1) % accum_iter == 0) or (batch_idx + 1 == len(loader)):
+            optimizer.step()
+            optimizer.zero_grad()
+            print('tvf batch_idx weight is updated', batch_idx)
 
     epoch_time = time.time() - t_epoch_start
     epoch_loss = loss_meter.avg

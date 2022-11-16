@@ -1,8 +1,8 @@
 save_dir: saved_model
-normal_class: ["lamp","chair","table","car","sofa","rifle"]
-abnormal_class: ["airplane"]
+normal_class: ["lamp","chair","table","car","sofa","airplane"]
+abnormal_class: ["rifle"]
 
-root_path: data 
+root_path: data/data_random_train_but_named_test1
 
 model: SkipVariationalFoldingNet
 weight: [1.0, 1.0, 1.0, 1.0]
@@ -19,3 +19,5 @@ feat_dims: 512
 n_points: 2048
 
 name: sample
+
+modeltype: VAE

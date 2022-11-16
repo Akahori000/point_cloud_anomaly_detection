@@ -11,4 +11,4 @@ python setup.py install
 
 cd ../../
 
-python train.py ./config/sample_objset3.yaml
+
